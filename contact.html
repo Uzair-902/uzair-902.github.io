@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>UzairTechGuide — Blank Template</title>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Montserrat:wght@600&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   UzairTechGuide — single-file blank page (with header + controls)
+   ============================================================ */
+:root{
+  --bg-dark:#0f1113;
+  --panel-dark:#15181a;
+  --text-light:#eef1f3;
+  --muted-light:#bfc7cb;
+  --accent:#ff7a2d;
+  --accent-2:#1db954;
+  --bg-light:#f6f7f8;
+  --panel-light:#ffffff;
+  --text-dark:#111214;
+  --muted-dark:#6b6f73;
+  --radius-md:14px;
+  --shadow-dark:0 8px 24px rgba(3,6,8,0.1);
+  --shadow-light:0 8px 24px rgba(16,24,32,0.06);
+  --transition:220ms cubic-bezier(.2,.9,.3,1);
+  --max-width:1100px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:"Roboto",system-ui,Arial;
+  background:var(--bg-dark);
+  color:var(--text-light);
+  transition:background .3s,color .3s;
+}
+body.light{background:var(--bg-light);color:var(--text-dark);}
+
+/* ===== top controls ===== */
+.top-controls{
+  position:fixed;top:10px;right:10px;
+  display:flex;gap:10px;z-index:1200;
+}
+.control-btn{
+  width:42px;height:42px;
+  border:none;border-radius:10px;
+  background:rgba(255,255,255,0.06);
+  cursor:pointer;font-size:20px;
+  display:flex;align-items:center;justify-content:center;
+  color:inherit;transition:background .2s,transform .2s;
+}
+.control-btn:hover{transform:translateY(-2px);}
+body.light .control-btn{background:#fff;box-shadow:var(--shadow-dark);}
+
+/* ===== header ===== */
+.header{
+  position:fixed;top:0;left:0;right:0;
+  height:56px;
+  display:flex;align-items:center;justify-content:center;
+  font-family:"Montserrat",sans-serif;
+  font-weight:600;font-size:1.2rem;
+  background:rgba(255,255,255,0.02);
+  backdrop-filter:blur(10px);
+  box-shadow:0 2px 8px rgba(0,0,0,0.15);
+  z-index:1000;
+}
+body.light .header{background:#fff;box-shadow:var(--shadow-light);}
+
+/* ===== hamburger ===== */
+.hamburger{
+  height:36px;width:36px;padding:6px 10px;
+  display:flex;flex-direction:column;justify-content:space-between;align-items:center;
+  background:transparent;border:none;cursor:pointer;
+}
+.hamburger span{
+  width:16px;height:2.5px;
+  background:var(--accent-2);
+  border-radius:2px;margin:1.5px 0;
+  transition:all .3s ease;
+}
+.hamburger.open span:nth-child(1){transform:rotate(45deg) translate(2px,2px);}
+.hamburger.open span:nth-child(2){opacity:0;}
+.hamburger.open span:nth-child(3){transform:rotate(-45deg) translate(3px,-3px);}
+.hamburger-fallback{display:none;font-size:22px;color:var(--accent-2);}
+body.light .hamburger span{background:var(--accent-2);}
+
+/* ===== side nav ===== */
+.side-nav{
+  position:fixed;top:0;right:-320px;
+  width:300px;height:100vh;
+  background:var(--panel-dark);
+  padding:70px 20px;transition:right .3s;
+  z-index:1100;
+}
+.side-nav.open{right:0;}
+body.light .side-nav{background:var(--panel-light);}
+.side-links a{
+  display:block;padding:10px 12px;
+  color:inherit;text-decoration:none;
+  font-weight:600;border-radius:10px;
+  transition:background .2s;
+}
+.side-links a:hover{background:rgba(255,255,255,0.06);color:var(--accent);}
+body.light .side-links a:hover{background:rgba(0,0,0,0.05);color:var(--accent-2);}
+.side-close{
+  position:absolute;top:10px;left:10px;
+  font-size:28px;background:none;border:none;color:inherit;cursor:pointer;
+}
+.overlay{
+  position:fixed;inset:0;
+  background:rgba(0,0,0,0.45);
+  opacity:0;pointer-events:none;
+  transition:opacity .2s;z-index:1050;
+}
+.overlay.show{opacity:1;pointer-events:auto;}
+body.light .overlay{background:rgba(0,0,0,0.25);}
+
+/* ===== main ===== */
+main{max-width:var(--max-width);margin:80px auto;padding:0 20px;}
+.content-placeholder{
+  background:rgba(255,255,255,0.03);
+  border-radius:12px;padding:30px;
+  min-height:60vh;
+  box-shadow:0 4px 20px rgba(0,0,0,0.25);
+  color:var(--muted-light);
+}
+body.light .content-placeholder{background:#fff;color:var(--muted-dark);}
+
+/* ===== footer ===== */
+.footer{text-align:center;padding:25px;color:var(--muted-light);}
+body.light .footer{color:var(--muted-dark);}
+</style>
+</head>
+<body>
+
+<!-- controls -->
+<div class="top-controls">
+  <button id="theme-toggle" class="control-btn" title="Toggle theme" aria-pressed="false" aria-label="Toggle color theme"></button>
+  <button id="hamburger-btn" class="hamburger" title="Menu" aria-label="Open menu" aria-expanded="false">
+    <span></span><span></span><span></span>
+    <span class="hamburger-fallback">&#9776;</span>
+  </button>
+</div>
+
+<!-- header -->
+<header class="header">UzairTechGuide</header>
+
+<!-- side nav -->
+<aside id="side-nav" class="side-nav" aria-hidden="true">
+  <button class="side-close" id="side-close" aria-label="Close menu">&times;</button>
+  <nav class="side-links" role="navigation">
+    <a href="index.html">Home</a>
+    <a href="#">Tutorials</a>
+    <a href="#">Downloads</a>
+    <a href="#">About</a>
+    <a href="#">Contact</a>
+  </nav>
+</aside>
+
+<div id="overlay" class="overlay" hidden></div>
+
+<!-- main -->
+<main>
+  <div class="content-placeholder">
+    <h1>Contact Me</h1>
+    <p>If you want to get in touch, have questions, or just want to say hi, you can reach me at:</p>
+    <p><strong>Email:</strong> <a href="mailto:uzairwork4270@gmail.com" style="color:var(--accent); text-decoration:underline;">uzairwork4270@gmail.com</a></p>
+    
+    <h2>Socials & Links</h2>
+    <p>You can also follow me on my YouTube channel and other tech projects for updates.</p>
+    <ul style="list-style:none; padding-left:0; display:flex; gap:15px; align-items:center;">
+      <li>
+        <a href="https://m.youtube.com/@MuhammdUzairShah23" target="_blank" title="YouTube Channel" style="display:flex; align-items:center; gap:8px; color:var(--accent); text-decoration:none;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24"><path d="M23.5 6.2c-.3-1.1-1.2-2-2.3-2.3C19.2 3.5 12 3.5 12 3.5s-7.2 0-9.2.4c-1.1.3-2 1.2-2.3 2.3C0 8.2 0 12 0 12s0 3.8.5 5.8c.3 1.1 1.2 2 2.3 2.3 2 .4 9.2.4 9.2.4s7.2 0 9.2-.4c1.1-.3 2-1.2 2.3-2.3.5-2 .5-5.8.5-5.8s0-3.8-.5-5.8zM9.8 15.5v-7l6 3.5-6 3.5z"/></svg>
+          YouTube
+        </a>
+      </li>
+      <li>
+        <a href="https://github.com/uzair-902" target="_blank" title="GitHub Profile" style="display:flex; align-items:center; gap:8px; color:var(--accent); text-decoration:none;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24"><path d="M12 .5C5.7.5.5 5.7.5 12c0 5.1 3.3 9.4 7.9 10.9.6.1.8-.3.8-.6v-2.3c-3.2.7-3.9-1.5-3.9-1.5-.5-1.3-1.2-1.6-1.2-1.6-1-.7.1-.7.1-.7 1.1.1 1.6 1.1 1.6 1.1 1 .1.9-1.7 1.9-2.1.1-.7.4-1.1.7-1.3-2.5-.3-5.1-1.3-5.1-5.7 0-1.3.5-2.4 1.2-3.2-.1-.3-.5-1.5.1-3.2 0 0 1-.3 3.3 1.2.9-.2 1.8-.3 2.8-.3 1 0 1.9.1 2.8.3 2.3-1.5 3.3-1.2 3.3-1.2.6 1.7.2 2.9.1 3.2.7.8 1.2 1.9 1.2 3.2 0 4.4-2.6 5.4-5.1 5.7.4.3.8 1 .8 2v3c0 .3.2.7.8.6 4.6-1.5 7.9-5.8 7.9-10.9C23.5 5.7 18.3.5 12 .5z"/></svg>
+          GitHub
+        </a>
+      </li>
+    </ul>
+  </div>
+</main>
+<!-- footer -->
+<footer class="footer">
+  <small>&copy; 2025 UzairTechGuide</small>
+</footer>
+
+<script>
+/*
+  Fix notes:
+  - theme icons use inline SVG (no emoji/font needed)
+  - theme persists via localStorage
+  - accessible titles + aria attributes
+*/
+
+(function(){
+  const THEME_KEY = 'utg_theme';
+  const bodyEl = document.body;
+  const themeBtn = document.getElementById('theme-toggle');
+  const burger = document.getElementById('hamburger-btn');
+  const nav = document.getElementById('side-nav');
+  const overlay = document.getElementById('overlay');
+  const closeBtn = document.getElementById('side-close');
+
+  // tiny inline SVGs for reliability
+  const SVG = {
+    moon: '<svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="currentColor" d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>',
+    sun:  '<svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="currentColor" d="M6.76 4.84l-1.8-1.79L3.17 4.85l1.79 1.79 1.8-1.8zM1 13h3v-2H1v2zm10-9h2V1h-2v3zm7.03 2.05l1.79-1.79-1.79-1.79-1.79 1.79 1.79 1.79zM17 13h3v-2h-3v2zM12 7a5 5 0 100 10 5 5 0 000-10zm4.24 11.16l1.8 1.79 1.79-1.79-1.79-1.79-1.8 1.79zM11 23h2v-3h-2v3zM3.17 19.15l1.79 1.79 1.8-1.79-1.8-1.79-1.79 1.79z"/></svg>'
+  };
+
+  // safe setter for theme: 'dark' | 'light'
+  function applyTheme(mode){
+    if(mode === 'light'){
+      bodyEl.classList.add('light');
+      bodyEl.classList.remove('dark');
+      themeBtn.innerHTML = SVG.sun;
+      themeBtn.title = 'Switch to dark';
+      themeBtn.setAttribute('aria-pressed','true');
+    } else {
+      bodyEl.classList.remove('light');
+      bodyEl.classList.add('dark');
+      themeBtn.innerHTML = SVG.moon;
+      themeBtn.title = 'Switch to light';
+      themeBtn.setAttribute('aria-pressed','false');
+    }
+    try { localStorage.setItem(THEME_KEY, mode); } catch(e){}
+  }
+
+  // initialize theme (saved -> prefers -> default dark)
+  (function initTheme(){
+    let saved = null;
+    try { saved = localStorage.getItem(THEME_KEY); } catch(e) { saved = null; }
+    if (!saved) {
+      const prefersLight = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches;
+      saved = prefersLight ? 'light' : 'dark';
+    }
+    applyTheme(saved);
+  })();
+
+  // toggle handler
+  themeBtn.addEventListener('click', () => {
+    const current = bodyEl.classList.contains('light') ? 'light' : 'dark';
+    applyTheme(current === 'light' ? 'dark' : 'light');
+  });
+
+  // keyboard support: Enter/Space also toggles (button already does, but keep explicit)
+  themeBtn.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      themeBtn.click();
+    }
+  });
+
+  // hamburger / side nav behavior (untouched logic, just robust)
+  function openSide(){
+    burger.classList.add('open');
+    nav.classList.add('open');
+    overlay.classList.add('show');
+    overlay.hidden = false;
+    burger.setAttribute('aria-expanded','true');
+    nav.setAttribute('aria-hidden','false');
+    const first = nav.querySelector('.side-links a');
+    if(first) first.focus();
+  }
+  function closeSide(){
+    burger.classList.remove('open');
+    nav.classList.remove('open');
+    overlay.classList.remove('show');
+    setTimeout(()=> overlay.hidden = true, 220);
+    burger.setAttribute('aria-expanded','false');
+    nav.setAttribute('aria-hidden','true');
+    try { burger.focus(); } catch(e){}
+  }
+  burger.addEventListener('click', (ev) => {
+    ev.stopPropagation();
+    if(nav.classList.contains('open')) closeSide(); else openSide();
+  });
+  closeBtn.addEventListener('click', closeSide);
+  overlay.addEventListener('click', closeSide);
+  document.addEventListener('keydown', (e)=> { if(e.key === 'Escape' && nav.classList.contains('open')) closeSide(); });
+  document.addEventListener('click', (e)=> { if(!nav.contains(e.target) && !burger.contains(e.target) && nav.classList.contains('open')) closeSide(); });
+
+  // defensive: ensure overlay exists (if someone removed it)
+  if (!document.getElementById('overlay')) {
+    const ov = document.createElement('div');
+    ov.id = 'overlay';
+    ov.className = 'overlay';
+    ov.hidden = true;
+    document.body.appendChild(ov);
+  }
+})();
+</script>
+
+</body>
+</html>
