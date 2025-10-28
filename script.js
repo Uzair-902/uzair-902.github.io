@@ -1,13 +1,4 @@
-/* ============================================================
-   UzairTechGuide - script.js
-   - Robust vanilla JS with defensive checks
-   - Handles hamburger + morphing + fallback to Unicode
-   - Theme toggle with persistence (localStorage)
-   - Overlay handling + accessibility (focus move)
-   - Smooth scroll for same-page anchors
-   - Reveal-on-scroll using IntersectionObserver
-   - Comments are verbose and aimed at non-webdev readers
-   ============================================================ */
+ ============================================================ */
 
 /* ---------- small utilities ---------- */
 /* $() and $$() are convenience helpers to find elements quickly.
@@ -280,5 +271,3 @@ function debounce(fn, wait, maxWait) {
 })();
 
 /* ========== End of script ========== */
-/* If you want extra features (keyboard-only menu navigation, focus trap inside side-nav,
-   or auto-closing after link click on mobile), tell me and I will add them carefully. */
