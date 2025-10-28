@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+use<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta name="google-adsense-account" content="ca-pub-8884255549677716">
@@ -128,21 +128,31 @@
     -->
 <!-- ----------- ADS BY GOOGLE ---------- -->
 
- <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8884255549677716"
-     crossorigin="anonymous"></script>
-<div style="text-align:center;">
+ <div id="ad-container" style="text-align:center; position:relative;">
+  <div id="ad-fallback" style="font-size:14px; color:#666; padding:10px;">
+    Ad Placeholder — your support keeps this site running ❤️
+  </div>
+
   <ins class="adsbygoogle"
        style="display:block"
        data-ad-format="fluid"
        data-ad-layout-key="-6t+ed+2i-1n-4w"
        data-ad-client="ca-pub-8884255549677716"
        data-ad-slot="6310245756"></ins>
-  <noscript>
-    <p>Ad Placeholder — your support keeps this site running ❤️</p>
-  </noscript>
 </div>
+
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8884255549677716"
+     crossorigin="anonymous"></script>
 <script>
-  (adsbygoogle = window.adsbygoogle || []).push({});
+  try {
+    (adsbygoogle = window.adsbygoogle || []).push({});
+    // Hide fallback text when ad loads
+    setTimeout(() => {
+      document.getElementById('ad-fallback').style.display = 'none';
+    }, 2000);
+  } catch (e) {
+    console.warn('Ad failed to load:', e);
+  }
 </script>
 
 
