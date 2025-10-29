@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>UzairTechGuide — How to Connect Shizuku To Termux on Android </title>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Montserrat:wght@600&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   UzairTechGuide - How To Connect Shizuku App to Ternux 
+   ============================================================ */
+:root{
+  --bg-dark:#0f1113;
+  --panel-dark:#15181a;
+  --text-light:#eef1f3;
+  --muted-light:#bfc7cb;
+  --accent:#ff7a2d;
+  --accent-2:#1db954;
+  --bg-light:#f6f7f8;
+  --panel-light:#ffffff;
+  --text-dark:#111214;
+  --muted-dark:#6b6f73;
+  --radius-md:14px;
+  --shadow-dark:0 8px 24px rgba(3,6,8,0.1);
+  --shadow-light:0 8px 24px rgba(16,24,32,0.06);
+  --transition:220ms cubic-bezier(.2,.9,.3,1);
+  --max-width:1100px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:"Roboto",system-ui,Arial;
+  background:var(--bg-dark);
+  color:var(--text-light);
+  transition:background .3s,color .3s;
+}
+body.light{background:var(--bg-light);color:var(--text-dark);}
+
+/* ===== top controls ===== */
+.top-controls{
+  position:fixed;top:10px;right:10px;
+  display:flex;gap:10px;z-index:1200;
+}
+.control-btn{
+  width:42px;height:42px;
+  border:none;border-radius:10px;
+  background:rgba(255,255,255,0.06);
+  cursor:pointer;font-size:20px;
+  display:flex;align-items:center;justify-content:center;
+  color:inherit;transition:background .2s,transform .2s;
+}
+.control-btn:hover{transform:translateY(-2px);}
+body.light .control-btn{background:#fff;box-shadow:var(--shadow-dark);}
+
+/* ===== header ===== */
+.header{
+  position:fixed;top:0;left:0;right:0;
+  height:56px;
+  display:flex;align-items:center;justify-content:center;
+  font-family:"Montserrat",sans-serif;
+  font-weight:600;font-size:1.2rem;
+  background:rgba(255,255,255,0.02);
+  backdrop-filter:blur(10px);
+  box-shadow:0 2px 8px rgba(0,0,0,0.15);
+  z-index:1000;
+}
+body.light .header{background:#fff;box-shadow:var(--shadow-light);}
+
+/* ===== hamburger ===== */
+.hamburger{
+  height:36px;width:36px;padding:6px 10px;
+  display:flex;flex-direction:column;justify-content:space-between;align-items:center;
+  background:transparent;border:none;cursor:pointer;
+}
+.hamburger span{
+  width:16px;height:2.5px;
+  background:var(--accent-2);
+  border-radius:2px;margin:1.5px 0;
+  transition:all .3s ease;
+}
+.hamburger.open span:nth-child(1){transform:rotate(45deg) translate(2px,2px);}
+.hamburger.open span:nth-child(2){opacity:0;}
+.hamburger.open span:nth-child(3){transform:rotate(-45deg) translate(3px,-3px);}
+.hamburger-fallback{display:none;font-size:22px;color:var(--accent-2);}
+body.light .hamburger span{background:var(--accent-2);}
+
+/* ===== side nav ===== */
+.side-nav{
+  position:fixed;top:0;right:-320px;
+  width:300px;height:100vh;
+  background:var(--panel-dark);
+  padding:70px 20px;transition:right .3s;
+  z-index:1100;
+}
+.side-nav.open{right:0;}
+body.light .side-nav{background:var(--panel-light);}
+.side-links a{
+  display:block;padding:10px 12px;
+  color:inherit;text-decoration:none;
+  font-weight:600;border-radius:10px;
+  transition:background .2s;
+}
+.side-links a:hover{background:rgba(255,255,255,0.06);color:var(--accent);}
+body.light .side-links a:hover{background:rgba(0,0,0,0.05);color:var(--accent-2);}
+.side-close{
+  position:absolute;top:10px;left:10px;
+  font-size:28px;background:none;border:none;color:inherit;cursor:pointer;
+}
+.overlay{
+  position:fixed;inset:0;
+  background:rgba(0,0,0,0.45);
+  opacity:0;pointer-events:none;
+  transition:opacity .2s;z-index:1050;
+}
+.overlay.show{opacity:1;pointer-events:auto;}
+body.light .overlay{background:rgba(0,0,0,0.25);}
+
+/* ===== main ===== */
+main{max-width:var(--max-width);margin:80px auto;padding:0 20px;}
+.content-placeholder{
+  background:rgba(255,255,255,0.03);
+  border-radius:12px;padding:30px;
+  min-height:60vh;
+  box-shadow:0 4px 20px rgba(0,0,0,0.25);
+  color:var(--muted-light);
+}
+body.light .content-placeholder{background:#fff;color:var(--muted-dark);}
+
+/* ===== footer ===== */
+.footer{text-align:center;padding:25px;color:var(--muted-light);}
+body.light .footer{color:var(--muted-dark);}
+</style>
+</head>
+<body>
+
+<!-- controls -->
+<div class="top-controls">
+  <button id="theme-toggle" class="control-btn" title="Toggle theme" aria-pressed="false" aria-label="Toggle color theme"></button>
+  <button id="hamburger-btn" class="hamburger" title="Menu" aria-label="Open menu" aria-expanded="false">
+    <span></span><span></span><span></span>
+    <span class="hamburger-fallback">&#9776;</span>
+  </button>
+</div>
+
+<!-- header -->
+<header class="header">UzairTechGuide</header>
+
+<!-- side nav -->
+<aside id="side-nav" class="side-nav" aria-hidden="true">
+  <button class="side-close" id="side-close" aria-label="Close menu">&times;</button>
+  <nav class="side-links" role="navigation">
+    <a href="index.html">Home</a>
+    <a href="#">Tutorials</a>
+    <a href="#">Downloads</a>
+    <a href="#">About</a>
+    <a href="#">Contact</a>
+  </nav>
+</aside>
+
+<div id="overlay" class="overlay" hidden></div>
+
+
+
+
+
+
+
+<!-- ================================================= -->
+
+
+
+
+
+
+
+
+
+<main class="tutorial-container" aria-labelledby="tut-title">
+
+  <style>
+    /* --- tutorial: local scoped styles --- */
+    :root{
+      --card-bg-dark: rgba(255,255,255,0.03);
+      --card-bg-light: #ffffff;
+      --text-dark: #111214;
+      --text-light: #eef1f3;
+      --muted-dark: #6b6f73;
+      --muted-light: #bfc7cb;
+      --accent: #1db954;
+      --yt-red: #FF0000;
+      --radius: 12px;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, "Roboto Mono", monospace;
+    }
+
+    /* container adapts to site theme (dark by default) */
+    .tutorial-container{
+      max-width:980px;
+      margin:36px auto;
+      padding:28px;
+      font-family: "Roboto", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      color: var(--text-light);
+      -webkit-font-smoothing:antialiased;
+      line-height:1.6;
+    }
+    /* light theme overrides if site toggles body.light */
+    body.light .tutorial-container{
+      color: var(--text-dark);
+    }
+
+    .card{
+      background: var(--card-bg-dark);
+      border-radius: var(--radius);
+      padding:20px;
+      box-shadow: 0 10px 28px rgba(0,0,0,0.18);
+      color: inherit;
+    }
+    body.light .card{
+      background: var(--card-bg-light);
+      box-shadow: 0 8px 20px rgba(16,24,32,0.06);
+    }
+
+    h1#tut-title{
+      font-family: "Montserrat", sans-serif;
+      font-size: clamp(1.4rem, 2.4vw, 1.9rem);
+      margin:0 0 12px;
+      letter-spacing:-0.01em;
+    }
+
+    p.lead{ margin:12px 0 18px; color: rgba(255,255,255,0.85); }
+    body.light p.lead{ color: rgba(0,0,0,0.75); }
+
+    .video-wrap{
+      position:relative;
+      width:100%;
+      padding-bottom:56.25%;
+      margin:18px 0;
+      border-radius:10px;
+      overflow:hidden;
+      background:rgba(0,0,0,0.06);
+    }
+    .video-wrap iframe{
+      position:absolute;inset:0;width:100%;height:100%;border:0;
+    }
+
+    h2.section-title{ font-size:1.05rem; margin:18px 0 8px; font-weight:700; }
+    ol, ul{ margin:8px 0 14px 1.25rem; }
+    li{ margin:8px 0; }
+
+    figure{ margin:12px 0; text-align:center; }
+    figure img{
+      width:100%;
+      max-width:820px;
+      border-radius:10px;
+      display:block;
+      margin:8px auto;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+    }
+    figcaption{ font-size:0.92rem; opacity:0.75; margin-top:6px; }
+
+    /* code blocks */
+    .code-block{
+      position:relative;
+      margin:14px 0;
+      border-radius:10px;
+      overflow:auto;
+      padding:12px 14px;
+      background: rgba(0,0,0,0.06);
+    }
+    body.light .code-block{ background: linear-gradient(180deg,#f6f8fb,#ffffff); box-shadow: 0 6px 18px rgba(16,24,32,0.04); }
+    .code-block pre{ margin:0; font-family: var(--mono); font-size:0.95rem; white-space:pre-wrap; word-break:break-word; color: inherit; }
+    .code-block code{ font-family: var(--mono); }
+
+
+
+    body.light .copy-btn{ background: rgba(0,0,0,0.06); color: #111; box-shadow: 0 4px 12px rgba(16,24,32,0.06); }
+    .copy-btn:active{ transform: translateY(1px); }
+    .copy-btn.copied{ background: #1db954; color:#fff; }
+
+    .copy-status{
+      position:absolute;
+      top:12px;
+      right:60px;
+      padding:6px 8px;
+      border-radius:8px;
+      font-size:0.84rem;
+      background: rgba(0,0,0,0.6);
+      color:#fff;
+      opacity:0;
+      transform: translateY(-6px);
+      transition: opacity .18s, transform .18s;
+      pointer-events:none;
+      white-space:nowrap;
+    }
+    body.light .copy-status{ background: rgba(0,0,0,0.06); color:var(--text-dark); }
+    .copy-status.show{ opacity:1; transform: translateY(0); }
+
+    /* YouTube CTA (solid black bg) */
+    .youtube-cta{
+      display:inline-flex;
+      gap:10px;
+      align-items:center;
+      margin-top:18px;
+      padding:12px 14px;
+      background:#000;
+      color:#fff;
+      border-radius:10px;
+      text-decoration:none;
+      font-weight:700;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+    }
+    .youtube-cta svg{ flex:0 0 auto; width:40px;height:24px; }
+
+    /* small */
+    .note{ font-size:0.96rem; opacity:0.9; margin-top:10px; }
+    a { color: #33aaff; }
+    @media(max-width:720px){
+      .tutorial-container{ padding:18px; margin:18px auto; }
+      .copy-btn{ width:36px;height:32px; top:8px; right:8px; }
+      .copy-status{ top:10px; right:46px; font-size:.78rem; }
+    }
+  </style>
+
+  <article class="card" role="article">
+
+    <h1 id="tut-title">How to Connect Shizuku App with Termux To Run Adb commands</h1>
+
+    <p class="lead">In this Tutorial, you will Be told how you can connect the <a href="https://play.google.com/store/apps/details?id=moe.shizuku.privileged.api" target="_blank" rel="noopener">Shizuku App</a> to The Termux Terminal App On Your Android Phone so that you can Run Adb commands on your phone Locally all without a PC or Root. Let's Go!</p>
+
+    <!-- responsive YouTube embed: replace `example_video_id` with the real id -->
+    <div class="video-wrap" aria-hidden="false">
+      <iframe
+        src="https://www.youtube.com/embed/example_video_id"
+        title="YouTube Tutorial"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowfullscreen loading="lazy"></iframe>
+    </div>
+
+
+    <h2 class="section-title">STEP 1:</h2>
+    <p>Before Starting, Make sure you have Downloaded <a href="https://f-droid.org/en/packages/com.termux/" target="_blank" rel="noopener"> Termux App From F-droid</a> and <a href="https://play.google.com/store/apps/details?id=moe.shizuku.privileged.api" target="_blank" rel="noopener">Shizuku App</a> On your Android Phone.</p>
+
+
+    <h2 class="section-title">STEP 2:</h2>
+    <p>Open the Shizuku App, And Setup it if you haven't (<a href="unavailable" target="_blank" rel="noopener">Shizuku Setup Tutorial</a>). Then Click on the third Option "Use Shizuku in Terminal Apps".</p>
+    <figure>
+      <img src="shizuku-scrshot.jpg" alt="Shizuku: Use in Terminal Apps">
+      <figcaption>Shizuku: select "Use Shizuku in terminal apps".</figcaption>
+    </figure>
+
+
+    <h2 class="section-title">STEP 3:</h2>
+    <p>First, Click the "Export Files" Button, Export files to any where you want. You will find two files, <code>rish</code> and <code>rish_shizuku.dex</code>. I recommend you to save these files in a "sh" folder in the "Documents" folder in main storage of your phone.</p>
+    <figure>
+      <img src="SAF-scrshot.jpg" alt="Exported files in Documents folder">
+      <figcaption>Files exported: <code>rish</code> + <code>rish_shizuku.dex</code></figcaption>
+    </figure>
+
+    <h2 class="section-title">STEP 4:</h2>
+    <p>Then, use any text editor to open and edit rish.</p>
+
+    <h2 class="section-title">STEP 5:</h2>
+    <p>Now you should find and replace PKG with <code>com.termux</code> (com.termux is the package name of Termux).</p>
+    <figure>
+      <img src="rish-scrshot.jpg" alt="Editing rish: replace PKG with com.termux">
+      <figcaption>Replace <code>PKG</code> with <code>com.termux</code> inside <code>rish</code>.</figcaption>
+    </figure>
+
+    <h2 class="section-title">STEP 5:</h2>
+    <p>Now Remember the path of Files That you exported from Shizuku and Open termux app. Type the following command:</p>
+
+    <div class="code-block" data-copy>
+      <pre><code> cp -r "/sdcard/documents/sh" "/data/data/com.termux/files/home/" </code></pre>
+    </div>
+
+
+    <h2 class="section-title">STEP 6:</h2>
+    <p>Now First move to Sh Directory by <code> cd /sh </code>, then Finally Type this Command in termux to start the Adb via Shizuku:</p>
+
+    <div class="code-block" data-copy>
+      <pre><code>sh rish
+</code></pre>
+    </div>
+
+    <figure>
+      <img src="tmux-scrshot.jpg" alt="Termux running sh rish">
+      <figcaption>This will copy the Shizuku Files from the Documents folder to Your Termux App. Then Run <code>sh rish</code> - Shizuku service must be paired and running.</figcaption>
+    </figure>
+
+    <p class="note"><strong>Note:</strong> Shizuku Service must be Paired and Running Properly in Order to Run the Above Command Successfully.</p>
+
+    <p style="margin-top:18px;">If the tutorial helped you, support the channel:</p>
+    <a class="youtube-cta" href="https://m.youtube.com/@MuhammdUzairShah23" target="_blank" rel="noopener noreferrer" aria-label="Open YouTube channel">
+      <!-- big YouTube SVG -->
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" role="img" xmlns="http://www.w3.org/2000/svg">
+        <path fill="#FF0000" d="M23.498 6.186a2.99 2.99 0 0 0-2.106-2.112C19.79 3.5 12 3.5 12 3.5s-7.79 0-9.392.574a2.99 2.99 0 0 0-2.106 2.112A31.554 31.554 0 0 0 0 12a31.554 31.554 0 0 0 .502 5.814 2.99 2.99 0 0 0 2.106 2.112C4.209 20.5 12 20.5 12 20.5s7.79 0 9.392-.574a2.99 2.99 0 0 0 2.106-2.112A31.554 31.554 0 0 0 24 12a31.554 31.554 0 0 0-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+      </svg>
+      <span style="font-size:1rem;">YouTube Channel</span>
+    </a>
+
+  </article>
+
+
+
+  <script>
+    (function(){
+      // helper: safe text copy with fallback
+      function safeCopy(text){
+        if (!text) return Promise.reject('no text');
+        if (navigator.clipboard && navigator.clipboard.writeText){
+          return navigator.clipboard.writeText(text);
+        }
+        // fallback for older browsers: textarea + execCommand
+        return new Promise((resolve, reject) => {
+          try {
+            const ta = document.createElement('textarea');
+            ta.value = text;
+            // avoid zoom on mobile
+            ta.style.position = 'fixed';
+            ta.style.left = '-9999px';
+            ta.style.top = '0';
+            document.body.appendChild(ta);
+            ta.focus();
+            ta.select();
+            const ok = document.execCommand('copy');
+            document.body.removeChild(ta);
+            if (ok) resolve();
+            else reject('execCommand failed');
+          } catch (e){
+            reject(e);
+          }
+        });
+      }
+
+
+
+
+      // make sure embedded iframe respects reduced motion settings
+      try {
+        if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+          document.querySelectorAll('.video-wrap iframe').forEach(f => {
+            f.setAttribute('loading','lazy');
+          });
+        }
+      } catch(e){}
+    })();
+  </script>
+
+</main>
+
+
+
+
+
+
+
+
+<!-- ============================================ -->
+
+
+
+
+
+
+<!-- footer -->
+<footer class="footer">
+  <small>&copy; 2025 UzairTechGuide</small>
+</footer>
+
+<script>
+/*
+  Fix notes:
+  - theme icons use inline SVG (no emoji/font needed)
+  - theme persists via localStorage
+  - accessible titles + aria attributes
+*/
+
+(function(){
+  const THEME_KEY = 'utg_theme';
+  const bodyEl = document.body;
+  const themeBtn = document.getElementById('theme-toggle');
+  const burger = document.getElementById('hamburger-btn');
+  const nav = document.getElementById('side-nav');
+  const overlay = document.getElementById('overlay');
+  const closeBtn = document.getElementById('side-close');
+
+  // tiny inline SVGs for reliability
+  const SVG = {
+    moon: '<svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="currentColor" d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>',
+    sun:  '<svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="currentColor" d="M6.76 4.84l-1.8-1.79L3.17 4.85l1.79 1.79 1.8-1.8zM1 13h3v-2H1v2zm10-9h2V1h-2v3zm7.03 2.05l1.79-1.79-1.79-1.79-1.79 1.79 1.79 1.79zM17 13h3v-2h-3v2zM12 7a5 5 0 100 10 5 5 0 000-10zm4.24 11.16l1.8 1.79 1.79-1.79-1.79-1.79-1.8 1.79zM11 23h2v-3h-2v3zM3.17 19.15l1.79 1.79 1.8-1.79-1.8-1.79-1.79 1.79z"/></svg>'
+  };
+
+  // safe setter for theme: 'dark' | 'light'
+  function applyTheme(mode){
+    if(mode === 'light'){
+      bodyEl.classList.add('light');
+      bodyEl.classList.remove('dark');
+      themeBtn.innerHTML = SVG.sun;
+      themeBtn.title = 'Switch to dark';
+      themeBtn.setAttribute('aria-pressed','true');
+    } else {
+      bodyEl.classList.remove('light');
+      bodyEl.classList.add('dark');
+      themeBtn.innerHTML = SVG.moon;
+      themeBtn.title = 'Switch to light';
+      themeBtn.setAttribute('aria-pressed','false');
+    }
+    try { localStorage.setItem(THEME_KEY, mode); } catch(e){}
+  }
+
+  // initialize theme (saved -> prefers -> default dark)
+  (function initTheme(){
+    let saved = null;
+    try { saved = localStorage.getItem(THEME_KEY); } catch(e) { saved = null; }
+    if (!saved) {
+      const prefersLight = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches;
+      saved = prefersLight ? 'light' : 'dark';
+    }
+    applyTheme(saved);
+  })();
+
+  // toggle handler
+  themeBtn.addEventListener('click', () => {
+    const current = bodyEl.classList.contains('light') ? 'light' : 'dark';
+    applyTheme(current === 'light' ? 'dark' : 'light');
+  });
+
+  // keyboard support: Enter/Space also toggles (button already does, but keep explicit)
+  themeBtn.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      themeBtn.click();
+    }
+  });
+
+  // hamburger / side nav behavior (untouched logic, just robust)
+  function openSide(){
+    burger.classList.add('open');
+    nav.classList.add('open');
+    overlay.classList.add('show');
+    overlay.hidden = false;
+    burger.setAttribute('aria-expanded','true');
+    nav.setAttribute('aria-hidden','false');
+    const first = nav.querySelector('.side-links a');
+    if(first) first.focus();
+  }
+  function closeSide(){
+    burger.classList.remove('open');
+    nav.classList.remove('open');
+    overlay.classList.remove('show');
+    setTimeout(()=> overlay.hidden = true, 220);
+    burger.setAttribute('aria-expanded','false');
+    nav.setAttribute('aria-hidden','true');
+    try { burger.focus(); } catch(e){}
+  }
+  burger.addEventListener('click', (ev) => {
+    ev.stopPropagation();
+    if(nav.classList.contains('open')) closeSide(); else openSide();
+  });
+  closeBtn.addEventListener('click', closeSide);
+  overlay.addEventListener('click', closeSide);
+  document.addEventListener('keydown', (e)=> { if(e.key === 'Escape' && nav.classList.contains('open')) closeSide(); });
+  document.addEventListener('click', (e)=> { if(!nav.contains(e.target) && !burger.contains(e.target) && nav.classList.contains('open')) closeSide(); });
+
+  // defensive: ensure overlay exists (if someone removed it)
+  if (!document.getElementById('overlay')) {
+    const ov = document.createElement('div');
+    ov.id = 'overlay';
+    ov.className = 'overlay';
+    ov.hidden = true;
+    document.body.appendChild(ov);
+  }
+})();
+</script>
+
+</body>
+</html>
