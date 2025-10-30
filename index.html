@@ -88,13 +88,34 @@
     <!-- ---------- HERO ----------
          Large header area with background image, logo, title, and CTAs.
          It is centered and scales with the viewport.
+        For now they are same-page anchors (or external YouTube link).
+  -->
+  <aside id="side-nav" class="side-nav" aria-hidden="true" aria-labelledby="hamburger-btn">
+    <button id="side-close" class="side-close" aria-label="Close menu">&times;</button>
+
+    <nav class="side-links" role="navigation" aria-label="Main navigation">
+      <a href="https://uzair-902.github.io">Home</a>
+      <a href="tutorials/tutorials.html">Tutorials</a>
+      <a href="contact.html">Contact</a>
+      <a href="about.html">About</a>
+      <a href="https://youtube.com/@muhammduzairshah23">YouTube Channel</a>
+    </nav>
+  </aside>
+
+  <!-- overlay displayed when side nav is open -->
+  <div id="page-overlay" class="overlay" hidden></div>
+
+  <main>
+    <!-- ---------- HERO ----------
+         Large header area with background image, logo, title, and CTAs.
+         It is centered and scales with the viewport.
     -->
     <header id="home" class="hero" role="banner">
-      <div class="hero-bg" role="img" aria-label="Technical dark background image"></div>
+      <div class="hero-bg" role="img" aria-label
 
       <div class="hero-inner">
         <!-- logo image should be present in same folder -->
-        <img src="logo.png" alt="UzairTechGuide logo" class="logo" />
+        <img src="logo.webp" alt="UzairTechGuide logo" class="logo" />
 
         <h1 class="site-title">UzairTechGuide</h1>
 
