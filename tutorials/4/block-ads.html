@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>UzairTechGuide — Block Ads on Android (No Root)</title>
+
+<!-- Google fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Montserrat:wght@600&display=swap" rel="stylesheet">
+
+<style>
+/* ============================================================
+   UzairTechGuide — Block Ads tutorial with inherited UI controls
+   ============================================================ */
+
+/* ---------- design tokens (slight tweak: --btn-size smaller) ---------- */
+:root{
+  --bg-dark:#0f1113;
+  --panel-dark:#15181a;
+  --text-light:#eef1f3;
+  --muted-light:#bfc7cb;
+  --accent:#ff7a2d;
+  --accent-2:#1db954;
+  --bg-light:#f6f7f8;
+  --panel-light:#ffffff;
+  --text-dark:#111214;
+  --muted-dark:#6b6f73;
+  --radius-md:14px;
+  --shadow-dark:0 8px 24px rgba(3,6,8,0.1);
+  --shadow-light:0 8px 24px rgba(16,24,32,0.06);
+  --transition:220ms cubic-bezier(.2,.9,.3,1);
+  --max-width:1100px;
+
+  /* Changed from 42px to 36px so toggle isn't oversized (your earlier ask) */
+  --btn-size:36px;
+}
+
+/* ---------- reset & base ---------- */
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font-family:"Roboto",system-ui,Arial;
+  background:var(--bg-dark);
+  color:var(--text-light);
+  transition:background .3s,color .3s;
+}
+body.light{background:var(--bg-light);color:var(--text-dark);}
+
+/* ===== top controls (inherited style, adjusted to use --btn-size) ===== */
+.top-controls{
+  position:fixed;top:10px;right:10px;
+  display:flex;gap:10px;z-index:1200;align-items:center;
+}
+.control-btn{
+  width:var(--btn-size);height:var(--btn-size);
+  border:none;border-radius:10px;
+  background:rgba(255,255,255,0.06);
+  cursor:pointer;font-size:20px;
+  display:flex;align-items:center;justify-content:center;
+  color:inherit;transition:background .2s,transform .2s;
+}
+.control-btn:hover{transform:translateY(-2px);}
+body.light .control-btn{background:#fff;box-shadow:var(--shadow-dark);}
+
+/* ===== header ===== */
+.header{
+  position:fixed;top:0;left:0;right:0;
+  height:56px;
+  display:flex;align-items:center;justify-content:center;
+  font-family:"Montserrat",sans-serif;
+  font-weight:600;font-size:1.2rem;
+  background:rgba(255,255,255,0.02);
+  backdrop-filter:blur(10px);
+  box-shadow:0 2px 8px rgba(0,0,0,0.15);
+  z-index:1000;
+}
+body.light .header{background:#fff;box-shadow:var(--shadow-light);}
+
+/* ===== hamburger (inherited) ===== */
+.hamburger{
+  height:36px;width:36px;padding:6px 10px;
+  display:flex;flex-direction:column;justify-content:space-between;align-items:center;
+  background:transparent;border:none;cursor:pointer;
+}
+.hamburger span{
+  width:16px;height:2.5px;
+  background:var(--accent-2);
+  border-radius:2px;margin:1.5px 0;
+  transition:all .3s ease;
+}
+.hamburger.open span:nth-child(1){transform:rotate(45deg) translate(2px,2px);}
+.hamburger.open span:nth-child(2){opacity:0;}
+.hamburger.open span:nth-child(3){transform:rotate(-45deg) translate(3px,-3px);}
+.hamburger-fallback{display:none;font-size:22px;color:var(--accent-2);}
+body.light .hamburger span{background:var(--accent-2);}
+
+/* ===== side nav (inherited) ===== */
+.side-nav{
+  position:fixed;top:0;right:-320px;
+  width:300px;height:100vh;
+  background:var(--panel-dark);
+  padding:70px 20px;transition:right .3s;
+  z-index:1100;
+}
+.side-nav.open{right:0;}
+body.light .side-nav{background:var(--panel-light);}
+.side-links a{
+  display:block;padding:10px 12px;
+  color:inherit;text-decoration:none;
+  font-weight:600;border-radius:10px;
+  transition:background .2s;
+}
+.side-links a:hover{background:rgba(255,255,255,0.06);color:var(--accent);}
+body.light .side-links a:hover{background:rgba(0,0,0,0.05);color:var(--accent-2);}
+.side-close{
+  position:absolute;top:10px;left:10px;
+  font-size:28px;background:none;border:none;color:inherit;cursor:pointer;
+}
+.overlay{
+  position:fixed;inset:0;
+  background:rgba(0,0,0,0.45);
+  opacity:0;pointer-events:none;
+  transition:opacity .2s;z-index:1050;
+}
+.overlay.show{opacity:1;pointer-events:auto;}
+body.light .overlay{background:rgba(0,0,0,0.25);}
+
+/* ===== main / card (content) ===== */
+main{max-width:var(--max-width);margin:80px auto;padding:0 20px;}
+.card{
+  background:rgba(255,255,255,0.03);
+  border-radius:12px;padding:30px;
+  min-height:60vh;box-shadow:0 4px 20px rgba(0,0,0,0.25);
+  color:var(--muted-light);line-height:1.6;
+}
+body.light .card{background:#fff;color:var(--muted-dark);box-shadow:var(--shadow-light);}
+
+/* headings & layout */
+.card h1{font-family:"Montserrat",sans-serif;font-size:1.6rem;margin-bottom:8px;}
+.card .lead{color:rgba(255,255,255,0.9);margin-bottom:12px;}
+body.light .card .lead{color:rgba(0,0,0,0.78);}
+.card h2{margin-top:16px;margin-bottom:8px;color:var(--accent-2);font-size:1rem;}
+.card p{margin:8px 0;}
+.code-block{display:block;margin:12px 0;padding:12px;border-radius:10px;background:rgba(0,0,0,0.32);font-family:ui-monospace,monospace;font-size:.95rem;white-space:pre-wrap;}
+body.light .code-block{background:linear-gradient(180deg,#f6f8fb,#fff);color:var(--text-dark);box-shadow:var(--shadow-light);}
+
+/* responsive video & CTA */
+.video-wrap{position:relative;width:100%;padding-bottom:56.25%;margin:18px 0;border-radius:10px;overflow:hidden;background:rgba(0,0,0,0.06);}
+.video-wrap iframe{position:absolute;inset:0;width:100%;height:100%;border:0;}
+.youtube-cta{display:inline-flex;gap:10px;align-items:center;margin-top:14px;padding:10px 14px;border-radius:10px;background:#000;color:#fff;text-decoration:none;font-weight:700;box-shadow:0 10px 28px rgba(0,0,0,0.12);}
+.youtube-cta svg{width:34px;height:22px;}
+
+/* footer */
+.footer{text-align:center;padding:25px;color:var(--muted-light);}
+body.light .footer{color:var(--muted-dark);}
+
+/* small screens */
+@media (max-width:720px){
+  .card{padding:20px;}
+  .control-btn{width:32px;height:32px;}
+  .video-wrap{padding-bottom:56.25%;}
+}
+</style>
+</head>
+<body>
+
+<!-- top controls (theme toggle + hamburger) -->
+<div class="top-controls">
+  <button id="theme-toggle" class="control-btn" aria-pressed="false" aria-label="Toggle color theme" title="Toggle theme"></button>
+  <button id="hamburger-btn" class="hamburger" aria-label="Open menu" aria-expanded="false" title="Menu">
+    <span></span><span></span><span></span>
+    <span class="hamburger-fallback" aria-hidden="true">&#9776;</span>
+  </button>
+</div>
+
+<!-- header -->
+<header class="header" role="banner">UzairTechGuide</header>
+
+<!-- side nav -->
+<aside id="side-nav" class="side-nav" aria-hidden="true" role="navigation">
+  <button class="side-close" id="side-close" aria-label="Close menu">&times;</button>
+  <nav class="side-links" role="menu">
+    <a href="https://uzair-902.github.io/index.html" role="menuitem">Home</a>
+    <a href="https://uzair-902.github.io/tutorials/tutorials.html" role="menuitem">Tutorials</a>
+    <a href="https://uzair-902.github.io/about.html" role="menuitem">About</a>
+    <a href="https://uzair-902.github.io/contact.html" role="menuitem">Contact</a>
+    <a href="https://m.youtube.com/@MuhammdUzairShah23" role="menuitem" target="_blank" rel="noopener">YouTube Channel</a>
+  </nav>
+</aside>
+
+<div id="overlay" class="overlay" hidden></div>
+
+<!-- main tutorial content -->
+<main>
+  <article class="card" aria-labelledby="page-title">
+
+    <h1 id="page-title">Block Most Ads on Android — No Root</h1>
+    <p class="lead">A short, safe, reversible method using Android's Private DNS (DNS-over-TLS). Minimal battery impact, system-wide filtering for most apps and browsers.</p>
+
+    <!-- video — lazy loaded -->
+    <div class="video-wrap" aria-hidden="false">
+      <iframe loading="lazy"
+        src="https://www.youtube.com/embed/pFPr16DW0yU"
+        title="Block Ads on Android — UzairTechGuide"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowfullscreen>
+      </iframe>
+    </div>
+
+    <h2>Quick Steps</h2>
+    <ol>
+      <li>Open <strong>Settings</strong> → <em>Network &amp; Internet</em> (or <em>Connections</em>).</li>
+      <li>Tap <strong>Private DNS</strong> (often under Advanced).</li>
+      <li>Select <strong>Private DNS provider hostname</strong>.</li>
+      <li>Enter exactly: <span class="code-block" aria-hidden="true">dns.adguard.com</span></li>
+      <li>Tap <strong>Save</strong>. Wait for status to show active/connected.</li>
+    </ol>
+
+    <h2>Why it works</h2>
+    <p>Private DNS prevents your device from resolving known ad/tracker domains. If the DNS never resolves an ad domain, the ad request fails before content loads — lightweight and system-wide for most apps.</p>
+
+    <h2>Troubleshooting</h2>
+    <ul>
+      <li>One typo in the hostname breaks DNS — double-check.</li>
+      <li>Toggle Wi-Fi or Airplane mode to refresh the network stack.</li>
+      <li>If a site behaves oddly, temporarily set Private DNS to <em>Off</em> or <em>Automatic</em> and test.</li>
+    </ul>
+
+    <h2>Alternatives</h2>
+    <p>If your device lacks Private DNS (Android &lt;9) try a local VPN-based blocker (e.g., Blokada or AdGuard non-root). They catch more cases but may use slightly more battery.</p>
+
+    <h2>Rollback</h2>
+    <p>Settings → Network &amp; Internet → Private DNS → choose <strong>Off</strong> or <strong>Automatic</strong> to revert.</p>
+
+    <p style="margin-top:14px;">If this helped, support the channel:</p>
+    <a class="youtube-cta" href="https://m.youtube.com/@MuhammdUzairShah23" target="_blank" rel="noopener noreferrer" aria-label="Open YouTube channel">
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" role="img" xmlns="http://www.w3.org/2000/svg">
+        <path fill="#FF0000" d="M23.498 6.186a2.99 2.99 0 0 0-2.106-2.112C19.79 3.5 12 3.5 12 3.5s-7.79 0-9.392.574a2.99 2.99 0 0 0-2.106 2.112A31.554 31.554 0 0 0 0 12a31.554 31.554 0 0 0 .502 5.814 2.99 2.99 0 0 0 2.106 2.112C4.209 20.5 12 20.5 12 20.5s7.79 0 9.392-.574a2.99 2.99 0 0 0 2.106-2.112A31.554 31.554 0 0 0 24 12a31.554 31.554 0 0 0-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+      </svg>
+      <span style="font-size:1rem;">YouTube Channel</span>
+    </a>
+
+  </article>
+</main>
+
+<!-- footer -->
+<footer class="footer" role="contentinfo">
+  <small>&copy; 2025 UzairTechGuide</small>
+  <p style="margin-top:8px;">
+    <a href="privacy.html">Privacy Policy</a> |
+    <a href="terms.html">Terms of Use</a> |
+    <a href="contact.html">Contact</a>
+  </p>
+</footer>
+
+<script>
+/* ============================================================
+   JS: theme toggle + side-nav behavior
+   - Inherited logic, slightly adapted to use current DOM
+   - Theme persisted under 'utg_theme'
+   - Accessible: keyboard support + focus management
+   ============================================================ */
+
+(function(){
+  // cached refs
+  const THEME_KEY = 'utg_theme';
+  const bodyEl = document.body;
+  const themeBtn = document.getElementById('theme-toggle');
+  const burger = document.getElementById('hamburger-btn');
+  const nav = document.getElementById('side-nav');
+  const overlay = document.getElementById('overlay');
+  const closeBtn = document.getElementById('side-close');
+
+  // inline SVG icons (use currentColor so they invert automatically)
+  const SVG = {
+    moon: '<svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="currentColor" d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>',
+    sun:  '<svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="currentColor" d="M6.76 4.84l-1.8-1.79L3.17 4.85l1.79 1.79 1.8-1.8zM1 13h3v-2H1v2zm10-9h2V1h-2v3zm7.03 2.05l1.79-1.79-1.79-1.79-1.79 1.79 1.79 1.79zM17 13h3v-2h-3v2zM12 7a5 5 0 100 10 5 5 0 000-10z"/></svg>'
+  };
+
+  // apply theme safely
+  function applyTheme(mode){
+    if(mode === 'light'){
+      bodyEl.classList.add('light');
+      bodyEl.classList.remove('dark');
+      themeBtn.innerHTML = SVG.sun;
+      themeBtn.title = 'Switch to dark';
+      themeBtn.setAttribute('aria-pressed','true');
+    } else {
+      bodyEl.classList.remove('light');
+      bodyEl.classList.add('dark');
+      themeBtn.innerHTML = SVG.moon;
+      themeBtn.title = 'Switch to light';
+      themeBtn.setAttribute('aria-pressed','false');
+    }
+    try { localStorage.setItem(THEME_KEY, mode); } catch(e){}
+  }
+
+  // initialize: saved -> prefers -> dark
+  (function initTheme(){
+    let saved = null;
+    try { saved = localStorage.getItem(THEME_KEY); } catch(e) { saved = null; }
+    if(!saved){
+      const prefersLight = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches;
+      saved = prefersLight ? 'light' : 'dark';
+    }
+    applyTheme(saved);
+  })();
+
+  // toggle handlers (click + keyboard)
+  themeBtn.addEventListener('click', () => {
+    const current = bodyEl.classList.contains('light') ? 'light' : 'dark';
+    applyTheme(current === 'light' ? 'dark' : 'light');
+  });
+  themeBtn.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); themeBtn.click(); }
+  });
+
+  // side nav helpers
+  function openSide(){
+    burger.classList.add('open');
+    nav.classList.add('open');
+    overlay.classList.add('show');
+    overlay.hidden = false;
+    burger.setAttribute('aria-expanded','true');
+    nav.setAttribute('aria-hidden','false');
+    const first = nav.querySelector('.side-links a');
+    if(first) first.focus();
+  }
+  function closeSide(){
+    burger.classList.remove('open');
+    nav.classList.remove('open');
+    overlay.classList.remove('show');
+    setTimeout(()=> overlay.hidden = true, 220);
+    burger.setAttribute('aria-expanded','false');
+    nav.setAttribute('aria-hidden','true');
+    try { burger.focus(); } catch(e){}
+  }
+
+  // hamburger toggling
+  burger.addEventListener('click', (ev) => {
+    ev.stopPropagation();
+    if(nav.classList.contains('open')) closeSide(); else openSide();
+  });
+
+  // close controls
+  closeBtn.addEventListener('click', closeSide);
+  overlay.addEventListener('click', closeSide);
+
+  // global keyboard / click handlers
+  document.addEventListener('keydown', (e)=> { if(e.key === 'Escape' && nav.classList.contains('open')) closeSide(); });
+  document.addEventListener('click', (e)=> { if(!nav.contains(e.target) && !burger.contains(e.target) && nav.classList.contains('open')) closeSide(); });
+
+  // defensive overlay recovery
+  if (!document.getElementById('overlay')) {
+    const ov = document.createElement('div');
+    ov.id = 'overlay';
+    ov.className = 'overlay';
+    ov.hidden = true;
+    document.body.appendChild(ov);
+  }
+})();
+</script>
+</body>
+  </html>
+  
